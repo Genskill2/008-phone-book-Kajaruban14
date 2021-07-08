@@ -62,20 +62,20 @@ int main(int argc, char *argv[]) {
     fclose(fp);
     exit(0);
   } else if (strcmp(argv[1], "search") == 0) {  /* Handle search */
-      if (argc != 3) {
+    //printf("NOT IMPLEMENTED!\n"); /* TBD  */
+    char name[20],phone[20]; 
+		if (argc != 3) {
       print_usage("Improper arguments for search", argv[0]);
       exit(1);
-      }
+    }
     FILE *fp = open_db_file();
-    char *name = argv[2];
-    if (!search(fp, name)) {
+    if (!search(fp,argv[2])) {
       printf("no match\n");
       fclose(fp);
       exit(1);
     }
     fclose(fp);
     exit(0);
-//printf("NOT IMPLEMENTED!\n"); /* TBD  */
   } else if (strcmp(argv[1], "delete") == 0) {  /* Handle delete */
     if (argc != 3) {
       print_usage("Improper arguments for delete", argv[0]);
@@ -106,17 +106,20 @@ FILE *open_db_file() {
 }
   
 void free_entries(entry *p) {
-  entry *temp = p;
-  while(temp != NULL){
-    temp = temp->next;
-    free(p);
-    p = temp;
+  /* TBD */
+  //printf("Memory is not being freed. This needs to be fixed!\n"); 
+  if(p!=NULL){
+    entry *temp=NULL;
+    entry *next=NULL;
+    temp=p;
+    next=temp->next;
+    while(next!=NULL){
+      free(temp);
+      temp=next;
+      next=temp->next;  
+    }
+  free(temp);
   }
-  if(p==NULL)
-    return;
-  else
-    /* TBD */
-    printf("Memory is not being freed. This needs to be fixed!\n");  
 }
 
 void print_usage(char *message, char *progname) {
@@ -153,20 +156,17 @@ entry *load_entries(FILE *fp) {
   entry *tmp = NULL;
   /* Description of %20[^,\n]
      % is the start of the specifier (like %s, %i etc.)
-
      20 is the maximum number of characters that this will take. We
         know that names and phone numbers will be 20 bytes maximum so
         we limit it to that. %20s will read in 20 character strings
         (including the , to separate the name and phone number. That's
         why we use
-
     [^,\n] Square brackets are used to indicate a set of allowed
            characters [abc] means only a, b, or c. With the ^, it's
            used to specify a set of disallowed characters. So [^abc]
            means any character *except* a, b, or c. [^,] means any
            character except a , [^,\n] means any character except a
            comma(,) or a newline(\n).
-
     %20[^,\n] will match a string of characters with a maximum length
      of 20 characters that doesn't have a comma(,) or a newline(\n).
   */        
@@ -200,29 +200,28 @@ void add(char *name, char *phone) {
 void list(FILE *db_file) {
   entry *p = load_entries(db_file);
   entry *base = p;
-  int count =0;
+  int count=0;
   while (p!=NULL) {
     printf("%-20s : %10s\n", p->name, p->phone);
     p=p->next;
     count++;
   }
+  printf("Total entries :  %d",count);
   /* TBD print total count */
-  printf("Total entries :  %i",count)
   free_entries(base);
 }
 
-int search(FILE *db_file,char *name){
-  entry *p = load_entries(db_file);
-  int searched = 0;
-  while (p!=NULL) {
-    if (strcmp(p->name, name) == 0) {
-        printf("%s",p->phone);
-        searched = 1;
-        break;
-    }
-    p = p->next;
-  }
-  return searched;
+int search(FILE *fp,char *NAME){
+	char name[20],phone[20];
+	int searched=0;
+	while(fscanf(fp, "%20[^,\n],%20[^,\n]\n", name, phone) != EOF){
+    	if(strcmp(name,NAME)==0){
+    		printf("%s",phone);
+    		searched+=1;
+    		break;
+    	}
+	}
+	return searched;
 }
 
 int delete(FILE *db_file, char *name) {
@@ -233,25 +232,18 @@ int delete(FILE *db_file, char *name) {
   int deleted = 0;
   while (p!=NULL) {
     if (strcmp(p->name, name) == 0) {
-        del = p;
-        if(del==base){
-            free(base);
-            base->next=NULL;
-            deleted = 1;
-        }
-        else{
-            prev = base;
-            while(prev->next != del){
-                prev = prev->next;
-            }
-            prev->next = del->next;
-            free(del);
-            del->next = NULL;
-            deleted = 1;
-        }
-        
-        
-        
+    	if(prev==NULL){
+    		base=p->next;
+    		free(p);
+    		deleted+=1;
+    		break;
+    	}else{
+    		del=p;
+    		prev->next=del->next;
+    		free(del);
+    		deleted+=1;
+    		break;
+    	}
       /* Matching node found. Delete it from the linked list.
          Deletion from a linked list like this
    
@@ -264,10 +256,9 @@ int delete(FILE *db_file, char *name) {
       */
 
       /* TBD */
-
-      
     }
-    p = p->next;
+    prev=p;
+    p=p->next;
   }
   write_all_entries(base);
   free_entries(base);
