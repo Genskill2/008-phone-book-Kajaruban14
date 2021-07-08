@@ -62,11 +62,9 @@ int main(int argc, char *argv[]) {
     fclose(fp);
     exit(0);
   } else if (strcmp(argv[1], "search") == 0) {  /* Handle search */
-    //printf("NOT IMPLEMENTED!\n"); /* TBD  */
-   // char name[20],phone[20]; 
-		if (argc != 3) {
-      print_usage("Improper arguments for search", argv[0]);
-      exit(1);
+     if (argc != 3) {
+       print_usage("Improper arguments for search", argv[0]);
+       exit(1);
     }
     FILE *fp = open_db_file();
     if (!search(fp,argv[2])) {
@@ -217,7 +215,7 @@ int search(FILE *fp,char *NAME){
   while(fscanf(fp, "%20[^,\n],%20[^,\n]\n", name, phone) != EOF){
     if(strcmp(name,NAME)==0){
        printf("%s",phone);
-       searched+=1;
+       searched=1;
        break;
     }
 }
@@ -235,13 +233,13 @@ int delete(FILE *db_file, char *name) {
     	if(prev==NULL){
     		base=p->next;
     		free(p);
-    		deleted+=1;
+    		deleted=1;
     		break;
     	}else{
     		del=p;
     		prev->next=del->next;
     		free(del);
-    		deleted+=1;
+    		deleted=1;
     		break;
     	}
       /* Matching node found. Delete it from the linked list.
@@ -254,8 +252,6 @@ int delete(FILE *db_file, char *name) {
          
          If the node to be deleted is p0, it's a special case. 
       */
-
-      /* TBD */
     }
     prev=p;
     p=p->next;
